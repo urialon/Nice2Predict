@@ -94,7 +94,7 @@ function callServer(server, methodName, params, success_cb, error_cb) {
   req.params = params;
 
   $.ajax({
-    url : server,
+    url : server + '/query',
     data : JSON.stringify(req),
     type : "POST",
     contentType : "application/json",
