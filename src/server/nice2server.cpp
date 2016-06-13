@@ -135,7 +135,7 @@ public:
     std::unique_ptr<Nice2Assignment> assignment(inference_.CreateAssignment(query.get()));
     assignment->FromJSON(request["assign"]);
     inference_.MapInference(query.get(), assignment.get());
-    assignment->GetCandidates(inference_, n, v, &response);
+    assignment->GetCandidates(inference_, v, n, &response);
 
     MaybeLogQuery("nbest", request, response);
   }
