@@ -338,7 +338,7 @@ public:
     GraphInference& graphInference = static_cast<GraphInference&>(inference);
     std::vector<int> candidates;
     candidates.clear();
-    GetLabelCandidates(graphInference, node, &candidates, n);
+    GetLabelCandidates(graphInference, node, &candidates, kMaxPerArcBeamSize);
 
     std::vector<std::pair<int, double>> scoredCandidates;
     Assignment& nodea = assignments_[node];
@@ -350,10 +350,14 @@ public:
       scoredCandidates.push_back(std::pair<int, double>(candidate, score));
     }
 
+    std::sort(scoredCandidates.begin(), scoredCandidates.end(), [](const std::pair<int,double> &left, const std::pair<int,double> &right) {
+      return right.second < left.second;
+    });
+
     *response = Json::Value(Json::arrayValue);
     for (size_t i = 0; i < scoredCandidates.size() ; i++) {
       Json::Value obj(Json::objectValue);
-      obj["candidate"] = scoredCandidates[i].first;
+      obj["candidate"] = label_set_->GetLabelName(scoredCandidates[i].first);
       obj["score"] = scoredCandidates[i].second;
       response->append(obj);
     }
