@@ -581,6 +581,7 @@ public:
 
   void GetLabelCandidates(const GraphInference& fweights, int node,
       std::vector<int>* candidates, size_t beam_size) const {
+    LOG(INFO) << "Getting label candidates with beam_size=" << beam_size;
     std::vector<std::pair<double, int> > empty_vec;
     for (const GraphQuery::Arc& arc : query_->arcs_adjacent_to_node_[node]) {
       if (arc.node_a == node) {
@@ -601,7 +602,7 @@ public:
       }
     }
 
-    LOG(INFO) << "Found candidates: ";
+    LOG(INFO) << "Found " << candidates->size() << "candidates: ";
     for (size_t i=0 ; i< candidates->size() ; i++) {
       LOG(INFO) << label_set_->GetLabelName((*candidates)[i]);
     }
