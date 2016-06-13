@@ -54,6 +54,7 @@ struct SingleLabelErrorStats {
   std::mutex lock;
 };
 
+class Nice2Inference;
 
 // Assigned results for the query (including the pre-assigned values).
 class Nice2Assignment {
