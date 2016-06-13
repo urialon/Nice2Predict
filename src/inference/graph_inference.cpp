@@ -330,6 +330,18 @@ public:
     }
   }
 
+  virtual void GetCandidates(
+      GraphInference& inference,
+        int node,
+        int n,
+        Json::Value* response) const {
+    std::vector<int> candidates;
+    candidates.clear();
+    GetLabelCandidates(inference, node, &candidates, kMaxPerNodeBeamSize);
+    *response = Json::Value(Json::arrayValue);
+
+  }
+
   virtual void ClearInferredAssignment() override {
     for (size_t i = 0; i < assignments_.size(); ++i) {
       if (assignments_[i].must_infer) {
@@ -1376,14 +1388,6 @@ void GraphInference::MapInference(
       Nice2Assignment* assignment) const {
   GraphNodeAssignment* a = static_cast<GraphNodeAssignment*>(assignment);
   PerformAssignmentOptimization(a);
-}
-
-void GraphInference::GetCandidates(
-      Nice2Assignment* assignment,
-      int node,
-      int n,
-      Json::Value* response) const {
-  GraphNodeAssignment* a = static_cast<GraphNodeAssignment*>(assignment);
 }
 
 double GraphInference::GetAssignmentScore(const Nice2Assignment* assignment) const {

@@ -67,6 +67,12 @@ public:
   virtual void FromJSON(const Json::Value& assignment) = 0;
   virtual void ToJSON(Json::Value* assignment) const = 0;
 
+  virtual void GetCandidates(
+      GraphInference& inference,
+      int node,
+      int n,
+      Json::Value* response) const = 0;
+
   // Deletes all labels that must be inferred (does not affect the given known labels).
   virtual void ClearInferredAssignment() = 0;
   // Compare two assignments (it is assumed the two assignments are for the same Nice2Query).
@@ -91,12 +97,6 @@ public:
   virtual void MapInference(
       const Nice2Query* query,
       Nice2Assignment* assignment) const = 0;
-
-  virtual void GetCandidates(
-      Nice2Assignment* assignment,
-      int node,
-      int n,
-      Json::Value* response) const = 0;
 
   // Gets the score of a given assignment.
   virtual double GetAssignmentScore(const Nice2Assignment* assignment) const = 0;

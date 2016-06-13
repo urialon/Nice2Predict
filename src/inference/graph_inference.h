@@ -160,12 +160,6 @@ public:
       const Nice2Query* query,
       Nice2Assignment* assignment) const override;
 
-  virtual void GetCandidates(
-      Nice2Assignment* assignment,
-      int node,
-      int n,
-      Json::Value* response) const override;
-
   virtual double GetAssignmentScore(const Nice2Assignment* assignment) const override;
 
   virtual void UpdateStats(
