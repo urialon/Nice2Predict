@@ -1382,7 +1382,7 @@ void GraphInference::GetCandidates(
       Nice2Assignment* assignment,
       int node,
       int n,
-      Json::Value* assignment) const {
+      Json::Value* response) const {
   GraphNodeAssignment* a = static_cast<GraphNodeAssignment*>(assignment);
 }
 

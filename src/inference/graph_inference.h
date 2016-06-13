@@ -27,7 +27,6 @@
 #include "stringset.h"
 #include "maputil.h"
 #include "label_checker.h"
-#include "jsoncpp/json/json.h"
 
 
 typedef std::multiset<int> Factor;
@@ -165,7 +164,7 @@ public:
       Nice2Assignment* assignment,
       int node,
       int n,
-      Json::Value* assignment) const override;
+      Json::Value* response) const override;
 
   virtual double GetAssignmentScore(const Nice2Assignment* assignment) const override;
 

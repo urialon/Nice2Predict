@@ -92,6 +92,12 @@ public:
       const Nice2Query* query,
       Nice2Assignment* assignment) const = 0;
 
+  virtual void GetCandidates(
+      Nice2Assignment* assignment,
+      int node,
+      int n,
+      Json::Value* response) const;
+
   // Gets the score of a given assignment.
   virtual double GetAssignmentScore(const Nice2Assignment* assignment) const = 0;
 
