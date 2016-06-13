@@ -355,7 +355,7 @@ public:
     });
 
     *response = Json::Value(Json::arrayValue);
-    for (int i = 0; i < scoredCandidates.size() && i < n ; i++) {
+    for (size_t i = 0; i < scoredCandidates.size() && i < (size_t)((unsigned)n) ; i++) {
       Json::Value obj(Json::objectValue);
       obj["candidate"] = label_set_->GetLabelName(scoredCandidates[i].first);
       obj["score"] = scoredCandidates[i].second;
