@@ -334,7 +334,7 @@ public:
       Nice2Inference& inference,
       int node,
       int n,
-      Json::Value* response) const {
+      Json::Value* response) {
     GraphInference& graphInference = static_cast<GraphInference&>(inference);
     std::vector<int> candidates;
     candidates.clear();
