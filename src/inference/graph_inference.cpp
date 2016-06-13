@@ -340,7 +340,7 @@ public:
     candidates.clear();
     GetLabelCandidates(graphInference, node, &candidates, n);
 
-    GraphNodeAssignment::Assignment& nodea = assignments_[node];
+    Assignment& nodea = assignments_[node];
 
     *response = Json::Value(Json::arrayValue);
     for (size_t i = 0; i < candidates.size() ; i++) {

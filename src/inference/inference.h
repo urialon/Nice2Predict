@@ -72,7 +72,7 @@ public:
       Nice2Inference& inference,
       int node,
       int n,
-      Json::Value* response) const = 0;
+      Json::Value* response) = 0;
 
   // Deletes all labels that must be inferred (does not affect the given known labels).
   virtual void ClearInferredAssignment() = 0;
