@@ -353,8 +353,8 @@ public:
     *response = Json::Value(Json::arrayValue);
     for (size_t i = 0; i < scoredCandidates.size() ; i++) {
       Json::Value obj(Json::objectValue);
-      obj["candidate"] = scoredCandidates.first;
-      obj["score"] = scoredCandidates.second;
+      obj["candidate"] = scoredCandidates[i].first;
+      obj["score"] = scoredCandidates[i].second;
       response->append(obj);
     }
   }
