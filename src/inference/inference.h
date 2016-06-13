@@ -96,7 +96,7 @@ public:
       Nice2Assignment* assignment,
       int node,
       int n,
-      Json::Value* response) const;
+      Json::Value* response) const = 0;
 
   // Gets the score of a given assignment.
   virtual double GetAssignmentScore(const Nice2Assignment* assignment) const = 0;
