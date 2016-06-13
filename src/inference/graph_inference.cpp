@@ -332,15 +332,20 @@ public:
 
   virtual void GetCandidates(
       Nice2Inference& inference,
-        int node,
-        int n,
-        Json::Value* response) const {
+      int node,
+      int n,
+      Json::Value* response) const {
     GraphInference& graphInference = static_cast<GraphInference&>(inference);
     std::vector<int> candidates;
     candidates.clear();
-    GetLabelCandidates(graphInference, node, &candidates, kMaxPerNodeBeamSize);
-    *response = Json::Value(Json::arrayValue);
+    GetLabelCandidates(graphInference, node, &candidates, n);
 
+    *response = Json::Value(Json::arrayValue);
+    for (size_t i = 0; i < candidates.size() ; i++) {
+      Json::Value obj(Json::objectValue);
+      obj["candidate"] = label_set_->GetLabelName(candidates[i]);
+      response->append(obj);
+    }
   }
 
   virtual void ClearInferredAssignment() override {
