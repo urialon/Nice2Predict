@@ -340,10 +340,14 @@ public:
     candidates.clear();
     GetLabelCandidates(graphInference, node, &candidates, n);
 
+    GraphNodeAssignment::Assignment& nodea = assignments_[node];
+
     *response = Json::Value(Json::arrayValue);
     for (size_t i = 0; i < candidates.size() ; i++) {
       Json::Value obj(Json::objectValue);
       obj["candidate"] = label_set_->GetLabelName(candidates[i]);
+      nodea.label = candidates[i];
+      obj["score"] = GetNodeScore(graphInference, node);
       response->append(obj);
     }
   }
@@ -602,10 +606,10 @@ public:
       }
     }
 
-    LOG(INFO) << "Found " << candidates->size() << "candidates: ";
+    /*LOG(INFO) << "Found " << candidates->size() << "candidates: ";
     for (size_t i=0 ; i< candidates->size() ; i++) {
       LOG(INFO) << label_set_->GetLabelName((*candidates)[i]);
-    }
+    }*/
 
     for (size_t i = 0; i < query_->factors_of_a_node_[node].size(); ++i) {
       Factor f_with_assignments;
