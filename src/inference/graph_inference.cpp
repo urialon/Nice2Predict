@@ -331,13 +331,14 @@ public:
   }
 
   virtual void GetCandidates(
-      GraphInference& inference,
+      Nice2Inference& inference,
         int node,
         int n,
         Json::Value* response) const {
+    GraphInference& graphInference = static_cast<GraphInference&>(inference);
     std::vector<int> candidates;
     candidates.clear();
-    GetLabelCandidates(inference, node, &candidates, kMaxPerNodeBeamSize);
+    GetLabelCandidates(graphInference, node, &candidates, kMaxPerNodeBeamSize);
     *response = Json::Value(Json::arrayValue);
 
   }

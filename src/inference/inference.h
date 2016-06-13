@@ -68,7 +68,7 @@ public:
   virtual void ToJSON(Json::Value* assignment) const = 0;
 
   virtual void GetCandidates(
-      GraphInference& inference,
+      Nice2Inference& inference,
       int node,
       int n,
       Json::Value* response) const = 0;
