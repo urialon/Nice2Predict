@@ -602,8 +602,8 @@ public:
     }
 
     LOG(INFO) << "Found candidates: ";
-    for (size_t i=0 ; i< candidates.size() ; i++) {
-      LOG(INFO) << label_set_->GetLabelName(candidates[i]);
+    for (size_t i=0 ; i< candidates->size() ; i++) {
+      LOG(INFO) << label_set_->GetLabelName((*candidates)[i]);
     }
 
     for (size_t i = 0; i < query_->factors_of_a_node_[node].size(); ++i) {
