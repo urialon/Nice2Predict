@@ -1378,6 +1378,14 @@ void GraphInference::MapInference(
   PerformAssignmentOptimization(a);
 }
 
+void GraphInference::GetCandidates(
+      Nice2Assignment* assignment,
+      int node,
+      int n,
+      Json::Value* assignment) const {
+  GraphNodeAssignment* a = static_cast<GraphNodeAssignment*>(assignment);
+}
+
 double GraphInference::GetAssignmentScore(const Nice2Assignment* assignment) const {
   const GraphNodeAssignment* a = static_cast<const GraphNodeAssignment*>(assignment);
   return a->GetTotalScore(*this);
