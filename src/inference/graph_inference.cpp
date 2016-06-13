@@ -340,14 +340,21 @@ public:
     candidates.clear();
     GetLabelCandidates(graphInference, node, &candidates, n);
 
+    std::vector<std::pair<int, double>> scoredCandidates;
     Assignment& nodea = assignments_[node];
 
-    *response = Json::Value(Json::arrayValue);
     for (size_t i = 0; i < candidates.size() ; i++) {
-      Json::Value obj(Json::objectValue);
-      obj["candidate"] = label_set_->GetLabelName(candidates[i]);
+      int candidate = candidates[i];
       nodea.label = candidates[i];
-      obj["score"] = GetNodeScore(graphInference, node);
+      double score = GetNodeScore(graphInference, node);
+      scoredCandidates.push_back(std::pair<int, double>(candidate, score));
+    }
+
+    *response = Json::Value(Json::arrayValue);
+    for (size_t i = 0; i < scoredCandidates.size() ; i++) {
+      Json::Value obj(Json::objectValue);
+      obj["candidate"] = scoredCandidates.first;
+      obj["score"] = scoredCandidates.second;
       response->append(obj);
     }
   }
@@ -585,7 +592,7 @@ public:
 
   void GetLabelCandidates(const GraphInference& fweights, int node,
       std::vector<int>* candidates, size_t beam_size) const {
-    LOG(INFO) << "Getting label candidates with beam_size=" << beam_size;
+    //LOG(INFO) << "Getting label candidates with beam_size=" << beam_size;
     std::vector<std::pair<double, int> > empty_vec;
     for (const GraphQuery::Arc& arc : query_->arcs_adjacent_to_node_[node]) {
       if (arc.node_a == node) {
