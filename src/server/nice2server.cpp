@@ -127,6 +127,7 @@ public:
   {
     int n = request["n"].asInt();
     int v = request["v"].asInt();
+    bool shouldInfer = request["infer"].asBool();
 
     VLOG(3) << request.toStyledString();
     verifyVersion(request);
@@ -134,7 +135,9 @@ public:
     query->FromJSON(request["query"]);
     std::unique_ptr<Nice2Assignment> assignment(inference_.CreateAssignment(query.get()));
     assignment->FromJSON(request["assign"]);
-    inference_.MapInference(query.get(), assignment.get());
+    if (shouldInfer) {
+      inference_.MapInference(query.get(), assignment.get());
+    }
     assignment->GetCandidates(inference_, v, n, &response);
 
     MaybeLogQuery("nbest", request, response);
