@@ -305,6 +305,7 @@ void Evaluate(RecordInput* evaluation_data, GraphInference* inference,
 }
 
 int main(int argc, char** argv) {
+  FLAGS_logtostderr = 1;
   google::InstallFailureSignalHandler();
   google::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);

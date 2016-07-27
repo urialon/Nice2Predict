@@ -21,6 +21,7 @@
 #include "jsonrpccpp/server.h"
 #include "jsonrpccpp/server/connectors/httpserver.h"
 #include "jsonrpccpp/common/exception.h"
+#include "gflags/gflags.h"
 
 #include "stringprintf.h"
 
