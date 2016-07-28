@@ -22,6 +22,7 @@
 #include <string.h>
 #include <iterator>
 
+#include "base.h"
 #include "inference.h"
 #include "lock_free_weight.h"
 #include "stringset.h"
@@ -30,7 +31,6 @@
 
 
 typedef std::multiset<int> Factor;
-
 
 namespace std {
   template <> struct hash<std::vector<int>> {
@@ -65,15 +65,21 @@ struct NodeConfusionStats {
 };
 
 struct FactorFeaturesLevel {
-  FactorFeaturesLevel() : factor_features(std::vector<std::pair<double, Factor>>()), next_level(std::unordered_map<int, std::shared_ptr<FactorFeaturesLevel>>()) {}
+  FactorFeaturesLevel() : factor_features(std::vector<std::shared_ptr<std::pair<double, Factor>>>()), next_level(std::unordered_map<int, std::shared_ptr<FactorFeaturesLevel>>()) {}
 
   ~FactorFeaturesLevel() {
     factor_features.clear();
     next_level.clear();
   }
 
-  void InsertFactorFeature(double weight, Factor& f, int current_depth, int maximum_depth, int current_label, Factor visited_labels) {
-    factor_features.push_back(std::pair<double, Factor>(weight, f));
+  void InsertFactorFeature(std::shared_ptr<std::pair<double, Factor>> factor_feature,
+                           const Factor& f,
+                           int current_depth,
+                           int maximum_depth,
+                           int current_label,
+                           Factor visited_labels) {
+    factor_features.push_back(factor_feature);
+
     Factor next_level_labels_visited;
     if (current_label > 0) {
       visited_labels.insert(current_label);
@@ -85,34 +91,40 @@ struct FactorFeaturesLevel {
           if (next_level.count(*it) == 0) {
             next_level[*it] = std::make_shared<FactorFeaturesLevel>();
           }
-          next_level[*it]->InsertFactorFeature(weight, f, current_depth + 1, maximum_depth, *it, visited_labels);
+          next_level[*it]->InsertFactorFeature(factor_feature, f,current_depth + 1, maximum_depth, *it, visited_labels);
         }
       }
     }
   }
 
-  void GetFactors(Factor& giv_labels, int current_depth, int next_level_label, std::vector<Factor>* candidates, size_t beam_size) {
-    if (factor_features.size() < beam_size || next_level.empty()) {
-      for (auto it = factor_features.begin(); it != factor_features.end(); ++it) {
-        candidates->push_back(it->second);
+  void GetFactors(Factor giv_labels, int next_level_label, std::vector<Factor>* candidates, size_t beam_size) const {
+    if (next_level.empty() || giv_labels.empty()) {
+      for (auto it = factor_features.begin(); it != factor_features.end() && candidates->size() < beam_size; ++it) {
+        candidates->push_back((*it)->second);
       }
     } else {
       auto it = giv_labels.begin();
-      std::advance(it, current_depth - 1);
+      giv_labels.erase(it);
+      it++;
       if (next_level.count(next_level_label) > 0) {
-        next_level[next_level_label]->GetFactors(giv_labels, current_depth + 1, *it, candidates, beam_size);
+        const auto& nl = next_level.find(next_level_label);
+        if (nl != next_level.end()) {
+          nl->second->GetFactors(giv_labels, *it, candidates, beam_size);
+        }
       }
     }
   }
 
   void SortFactorFeatures() {
-    std::sort(factor_features.begin(), factor_features.end(), std::greater<std::pair<double, Factor> >());
+    std::sort(factor_features.begin(), factor_features.end(), [](std::shared_ptr<std::pair<double, Factor>> a, std::shared_ptr<std::pair<double, Factor>> b) {
+      return a->first > b->first;
+    });
     for (auto it = next_level.begin(); it != next_level.end(); ++it) {
       it->second->SortFactorFeatures();
     }
   }
 
-  std::vector<std::pair<double, Factor>> factor_features;
+  std::vector<std::shared_ptr<std::pair<double, Factor>>> factor_features;
   std::unordered_map<int, std::shared_ptr<FactorFeaturesLevel>> next_level;
 };
 
@@ -213,16 +225,16 @@ private:
 
   typedef google::dense_hash_map<GraphFeature, LockFreeWeights> FeaturesMap;
   typedef google::dense_hash_map<GraphFeature, double> SimpleFeaturesMap;
-  typedef std::unordered_map<Factor, double> FactorFeaturesMap;
+  typedef std::unordered_map<uint64, double> Uint64FactorFeaturesMap;
   // std::unordered_map<GraphFeature, double> features_;
   FeaturesMap features_;
-  FactorFeaturesMap factor_features_;
+  std::set<Factor> factors_set_;
+  Uint64FactorFeaturesMap factor_features_;
 
   //google::dense_hash_map<IntPair, std::vector<std::pair<double, int> > > best_features_for_a_type_, best_features_for_b_type_;
   std::unordered_map<IntPair, std::vector<std::pair<double, int> > > best_features_for_a_type_, best_features_for_b_type_;
-  std::unordered_map<Factor, std::vector<std::pair<double, int>>> best_factor_features_;
 
-  std::unordered_map<int, FactorFeaturesLevel> best_factor_features_first_level_;
+  google::dense_hash_map<int, FactorFeaturesLevel> best_factor_features_first_level_;
 
   google::dense_hash_map<int, std::vector<std::pair<double, GraphFeature> > > best_features_for_type_;
   google::dense_hash_map<int, int> label_frequency_;
