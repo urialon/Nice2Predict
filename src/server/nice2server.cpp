@@ -21,6 +21,7 @@
 #include "jsonrpccpp/server.h"
 #include "jsonrpccpp/server/connectors/httpserver.h"
 #include "jsonrpccpp/common/exception.h"
+#include "gflags/gflags.h"
 
 #include "stringprintf.h"
 
@@ -125,15 +126,20 @@ public:
 
   void nbest(const Json::Value& request, Json::Value& response)
   {
-    // int n = request["n"].asInt();
+    int n = request["n"].asInt();
+    int v = request["v"].asInt();
+    bool shouldInfer = request["infer"].asBool();
+
     VLOG(3) << request.toStyledString();
     verifyVersion(request);
     std::unique_ptr<Nice2Query> query(inference_.CreateQuery());
     query->FromJSON(request["query"]);
     std::unique_ptr<Nice2Assignment> assignment(inference_.CreateAssignment(query.get()));
     assignment->FromJSON(request["assign"]);
-    inference_.MapInference(query.get(), assignment.get());
-    assignment->ToJSON(&response);
+    if (shouldInfer) {
+      inference_.MapInference(query.get(), assignment.get());
+    }
+    assignment->GetCandidates(inference_, v, n, &response);
 
     MaybeLogQuery("nbest", request, response);
   }

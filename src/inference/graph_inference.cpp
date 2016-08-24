@@ -26,6 +26,7 @@
 
 #include "stringprintf.h"
 #include "glog/logging.h"
+#include "gflags/gflags.h"
 
 #include "base.h"
 #include "maputil.h"
@@ -351,6 +352,39 @@ public:
     }
   }
 
+  virtual void GetCandidates(
+      Nice2Inference& inference,
+      int node,
+      int n,
+      Json::Value* response) {
+    GraphInference& graphInference = static_cast<GraphInference&>(inference);
+    std::vector<int> candidates;
+    candidates.clear();
+    GetLabelCandidates(graphInference, node, &candidates, kMaxPerArcBeamSize);
+
+    std::vector<std::pair<int, double>> scoredCandidates;
+    Assignment& nodea = assignments_[node];
+
+    for (size_t i = 0; i < candidates.size() ; i++) {
+      int candidate = candidates[i];
+      nodea.label = candidates[i];
+      double score = GetNodeScore(graphInference, node);
+      scoredCandidates.push_back(std::pair<int, double>(candidate, score));
+    }
+
+    std::sort(scoredCandidates.begin(), scoredCandidates.end(), [](const std::pair<int,double> &left, const std::pair<int,double> &right) {
+      return right.second < left.second;
+    });
+
+    *response = Json::Value(Json::arrayValue);
+    for (size_t i = 0; i < scoredCandidates.size() && i < (size_t)((unsigned)n) ; i++) {
+      Json::Value obj(Json::objectValue);
+      obj["candidate"] = label_set_->GetLabelName(scoredCandidates[i].first);
+      obj["score"] = scoredCandidates[i].second;
+      response->append(obj);
+    }
+  }
+
   virtual void ClearInferredAssignment() override {
     for (size_t i = 0; i < assignments_.size(); ++i) {
       if (assignments_[i].must_infer) {
@@ -585,6 +619,7 @@ public:
 
   void GetLabelCandidates(const GraphInference& fweights, int node,
       std::vector<int>* candidates, size_t beam_size) const {
+    //LOG(INFO) << "Getting label candidates with beam_size=" << beam_size;
     std::vector<std::pair<double, int> > empty_vec;
     for (const GraphQuery::Arc& arc : query_->arcs_adjacent_to_node_[node]) {
       if (arc.node_a == node) {
