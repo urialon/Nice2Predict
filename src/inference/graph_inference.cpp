@@ -629,6 +629,21 @@ public:
     }
     return sum;
   }
+  
+  double GetEdgeScore(const GraphInference& fweights, const GraphQuery::Arc& arc) const {
+    const GraphInference::FeaturesMap& features = fweights.features_;
+    //const GraphInference::Uint64FactorFeaturesMap& factor_features = fweights.factor_features_;
+    double sum = 0;
+    GraphFeature feature(
+          assignments_[arc.node_a].label,
+          assignments_[arc.node_b].label,
+          arc.type);
+    auto feature_it = features.find(feature);
+      if (feature_it != features.end()) {
+        sum += feature_it->second.getValue();
+      }
+    return sum;
+  }
 
   int GetNumAdjacentArcs(int node) const {
     return query_->arcs_adjacent_to_node_[node].size();
@@ -1663,7 +1678,9 @@ void GraphInference::DisplayGraph(
     }
     StringAppendF(&s, "%s - %.2f",
         a->GetLabelName(arc.type),
-        a->GetNodePairScore(*this, arc.node_a, arc.node_b, a->assignments_[arc.node_a].label, a->assignments_[arc.node_b].label));
+        //a->GetNodePairScore(*this, arc.node_a, arc.node_b, a->assignments_[arc.node_a].label, a->assignments_[arc.node_b].label)
+        a->GetEdgeScore(*this, arc)
+        );
   }
 
   Json::Value& edges = (*graph)["edges"];
@@ -1825,7 +1842,26 @@ void GraphInference::PrepareForInference() {
 }
 
 void GraphInference::PrintDebugInfo() {
-  NBest<int, double> best_connected_labels;
+  NBest<IntTuple<3>, double> best_features;
+
+  for (auto it = features_.begin(); it != features_.end(); ++it) {
+    double score = it->second.getValue();
+    IntTuple<3> feature;
+    feature.values[0] = it->first.a_;
+    feature.values[1] = it->first.type_;
+    feature.values[2] = it->first.b_;
+    
+    best_features.AddScoreToItem(feature, score);
+  }
+
+  printf("Best connected labels\n");
+  for (auto v : best_features.produce_nbest(96)) {
+    printf("%.3f : %s - %s - %s\n", v.first, 
+        strings_.getString(v.second.values[0]), 
+        strings_.getString(v.second.values[1]), 
+        strings_.getString(v.second.values[2]));
+  }
+  /*NBest<int, double> best_connected_labels;
   std::unordered_map<int, NBest<int, double> > best_connections_per_label;
   std::unordered_map<IntPair, NBest<int, double> > best_connections_per_label_type;
   for (auto it = features_.begin(); it != features_.end(); ++it) {
@@ -1849,7 +1885,7 @@ void GraphInference::PrintDebugInfo() {
       printf("\n");
     }
     printf("\n");
-  }
+  }*/
 }
 
 void GraphInference::PrintConfusionStatistics(
