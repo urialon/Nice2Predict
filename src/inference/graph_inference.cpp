@@ -59,10 +59,10 @@ DEFINE_int32(min_freq_known_label, 0,
 
 static const size_t kInitialAssignmentBeamSize = 4;
 
-static const size_t kStartPerArcBeamSize = 4;
+static const size_t kStartPerArcBeamSize = 64;
 static const size_t kMaxPerArcBeamSize = 64;
 
-static const size_t kStartPerNodeBeamSize = 4;
+static const size_t kStartPerNodeBeamSize = 64;
 static const size_t kMaxPerNodeBeamSize = 64;
 static const size_t kLoopyBPBeamSize = 32;
 
@@ -351,37 +351,65 @@ public:
       assignment->append(obj);
     }
   }
+  
+  std::vector<std::pair<int, double>> GetCandidatesForNode(Nice2Inference& inference, int node, int n) {
+        GraphInference& graphInference = static_cast<GraphInference&>(inference);
+        std::vector<int> candidates;
+        candidates.clear();
+        GetLabelCandidates(graphInference, node, &candidates, kMaxPerArcBeamSize);
 
+        std::vector<std::pair<int, double>> scoredCandidates;
+        Assignment& nodea = assignments_[node];
+        int originalLabel = nodea.label;
+        for (size_t i = 0; i < candidates.size() ; i++) {
+          int candidate = candidates[i];
+          nodea.label = candidates[i];
+          double score = GetNodeScore(graphInference, node);
+          scoredCandidates.push_back(std::pair<int, double>(candidate, score));
+        }
+        nodea.label = originalLabel;
+
+        std::sort(scoredCandidates.begin(), scoredCandidates.end(), [](const std::pair<int,double> &left, const std::pair<int,double> &right) {
+          return right.second < left.second;
+        });
+        return scoredCandidates;
+  }
+ 
   virtual void GetCandidates(
       Nice2Inference& inference,
       int node,
       int n,
       Json::Value* response) {
-    GraphInference& graphInference = static_cast<GraphInference&>(inference);
-    std::vector<int> candidates;
-    candidates.clear();
-    GetLabelCandidates(graphInference, node, &candidates, kMaxPerArcBeamSize);
-
-    std::vector<std::pair<int, double>> scoredCandidates;
-    Assignment& nodea = assignments_[node];
-
-    for (size_t i = 0; i < candidates.size() ; i++) {
-      int candidate = candidates[i];
-      nodea.label = candidates[i];
-      double score = GetNodeScore(graphInference, node);
-      scoredCandidates.push_back(std::pair<int, double>(candidate, score));
-    }
-
-    std::sort(scoredCandidates.begin(), scoredCandidates.end(), [](const std::pair<int,double> &left, const std::pair<int,double> &right) {
-      return right.second < left.second;
-    });
-
     *response = Json::Value(Json::arrayValue);
-    for (size_t i = 0; i < scoredCandidates.size() && i < (size_t)((unsigned)n) ; i++) {
-      Json::Value obj(Json::objectValue);
-      obj["candidate"] = label_set_->GetLabelName(scoredCandidates[i].first);
-      obj["score"] = scoredCandidates[i].second;
-      response->append(obj);
+    
+    if (node != -1) {
+        std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, node, n);
+        for (size_t i = 0; i < scoredCandidates.size() && i < (size_t)((unsigned)n) ; i++) {
+          Json::Value obj(Json::objectValue);
+          obj["candidate"] = label_set_->GetLabelName(scoredCandidates[i].first);
+          obj["score"] = scoredCandidates[i].second;
+          response->append(obj);
+        }
+    }
+    else {
+        for (size_t i = 0; i < assignments_.size(); ++i) {
+        //for (int i = assignments_.size() - 1; i>= 0; --i) {
+          if (assignments_[i].must_infer) {
+            //LOG(INFO) << "Adding node " << i << " to response";
+            std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, i, n);
+            Json::Value nodeResults(Json::objectValue);
+            nodeResults["node"] = (int)i;
+            Json::Value nodeCandidates(Json::arrayValue);
+            for (size_t j = 0; j < scoredCandidates.size() && j < (size_t)((unsigned)n) ; j++) {
+              Json::Value obj(Json::objectValue);
+              obj["candidate"] = label_set_->GetLabelName(scoredCandidates[j].first);
+              obj["score"] = scoredCandidates[j].second;
+              nodeCandidates.append(obj);
+            }
+            nodeResults["candidates"] = nodeCandidates;
+            response->append(nodeResults);
+          }
+        }
     }
   }
 
