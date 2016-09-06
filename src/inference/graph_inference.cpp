@@ -1842,7 +1842,7 @@ void GraphInference::PrepareForInference() {
 }
 
 void GraphInference::PrintDebugInfo() {
-  NBest<IntTuple<3>, double> best_features;
+  /*NBest<IntTuple<3>, double> best_features;
 
   for (auto it = features_.begin(); it != features_.end(); ++it) {
     double score = it->second.getValue();
@@ -1860,7 +1860,7 @@ void GraphInference::PrintDebugInfo() {
         strings_.getString(v.second.values[0]), 
         strings_.getString(v.second.values[1]), 
         strings_.getString(v.second.values[2]));
-  }
+  }*/
   /*NBest<int, double> best_connected_labels;
   std::unordered_map<int, NBest<int, double> > best_connections_per_label;
   std::unordered_map<IntPair, NBest<int, double> > best_connections_per_label_type;
