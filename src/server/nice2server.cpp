@@ -127,9 +127,17 @@ public:
   void nbest(const Json::Value& request, Json::Value& response)
   {
     int n = request["n"].asInt();
-    int v = request["v"].asInt();
+    const Json::Value targetNode = request["v"];
+    int v = -1;
+    // If v parameter was not provided - set v to -1, which indicates to get candidates
+    // for all the inferrable variables in the query
+    if (targetNode == Json::Value::null) {
+      v = -1;
+    }
+    else {
+      v = targetNode.asInt();
+    }
     bool shouldInfer = request["infer"].asBool();
-
     VLOG(3) << request.toStyledString();
     verifyVersion(request);
     std::unique_ptr<Nice2Query> query(inference_.CreateQuery());
