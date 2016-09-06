@@ -131,13 +131,17 @@ public:
     int v = -1;
     // If v parameter was not provided - set v to -1, which indicates to get candidates
     // for all the inferrable variables in the query
-    if (targetNode == Json::Value::null) {
-      v = -1;
-    }
-    else {
+    if (targetNode != Json::Value::null) {
       v = targetNode.asInt();
     }
-    bool shouldInfer = request["infer"].asBool();
+
+    const Json::Value shouldInferParam = request["infer"];
+    // If infer parameter was not provided - set should infer to "false" by default
+    bool shouldInfer = false;
+    if (shouldInferParam != Json::Value::null) {
+      shouldInfer = shouldInferParam.asBool();
+    }
+
     VLOG(3) << request.toStyledString();
     verifyVersion(request);
     std::unique_ptr<Nice2Query> query(inference_.CreateQuery());
