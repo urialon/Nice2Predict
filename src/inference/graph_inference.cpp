@@ -395,10 +395,10 @@ public:
         for (size_t i = 0; i < assignments_.size(); ++i) {
         //for (int i = assignments_.size() - 1; i>= 0; --i) {
           if (assignments_[i].must_infer) {
-            //LOG(INFO) << "Adding node " << i << " to response";
+            //LOG(INFO) << "Adding node " << i << " to response, id: " << query_->numberer_.NumberToValue(i) << ", name: " << label_set_->GetLabelName(assignments_[i].label);
             std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, i, n);
             Json::Value nodeResults(Json::objectValue);
-            nodeResults["node"] = (int)i;
+            nodeResults["node"] = query_->numberer_.NumberToValue(i);
             Json::Value nodeCandidates(Json::arrayValue);
             for (size_t j = 0; j < scoredCandidates.size() && j < (size_t)((unsigned)n) ; j++) {
               Json::Value obj(Json::objectValue);
