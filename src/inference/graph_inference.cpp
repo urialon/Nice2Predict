@@ -352,7 +352,7 @@ public:
     }
   }
   
-  std::vector<std::pair<int, double>> GetCandidatesForNode(Nice2Inference& inference, int node, int n) {
+  std::vector<std::pair<int, double>> GetCandidatesForNode(Nice2Inference& inference, int node) {
         GraphInference& graphInference = static_cast<GraphInference&>(inference);
         std::vector<int> candidates;
         candidates.clear();
@@ -363,7 +363,8 @@ public:
         int originalLabel = nodea.label;
         for (size_t i = 0; i < candidates.size() ; i++) {
           int candidate = candidates[i];
-          nodea.label = candidates[i];
+          nodea.label = candidate;
+          if (!graphInference.label_checker_.IsLabelValid(candidate)) continue;
           double score = GetNodeScore(graphInference, node);
           scoredCandidates.push_back(std::pair<int, double>(candidate, score));
         }
@@ -383,7 +384,7 @@ public:
     *response = Json::Value(Json::arrayValue);
     
     if (node != -1) {
-        std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, node, n);
+        std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, node);
         for (size_t i = 0; i < scoredCandidates.size() && i < (size_t)((unsigned)n) ; i++) {
           Json::Value obj(Json::objectValue);
           obj["candidate"] = label_set_->GetLabelName(scoredCandidates[i].first);
@@ -396,7 +397,7 @@ public:
         //for (int i = assignments_.size() - 1; i>= 0; --i) {
           if (assignments_[i].must_infer) {
             //LOG(INFO) << "Adding node " << i << " to response, id: " << query_->numberer_.NumberToValue(i) << ", name: " << label_set_->GetLabelName(assignments_[i].label);
-            std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, i, n);
+            std::vector<std::pair<int, double>> scoredCandidates = GetCandidatesForNode(inference, i);
             Json::Value nodeResults(Json::objectValue);
             nodeResults["node"] = query_->numberer_.NumberToValue(i);
             Json::Value nodeCandidates(Json::arrayValue);
